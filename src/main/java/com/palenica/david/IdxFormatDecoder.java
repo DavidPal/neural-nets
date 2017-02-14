@@ -39,10 +39,10 @@ public class IdxFormatDecoder {
         final byte[] bytes = readBytes(input, 4*size);
         final int[] output = new int[size];
         for (int i = 0; i < size; i++) {
-            output[i] = (bytes[4*i + 0] << 24) & 0xFF000000 |
-                        (bytes[4*i + 1] << 16) & 0x00FF0000 |
-                        (bytes[4*i + 2] <<  8) & 0x0000FF00 |
-                        (bytes[4*i + 3] <<  0) & 0x000000FF;
+            output[i] = (Byte.toUnsignedInt(bytes[4*i + 0]) << 24) |
+                        (Byte.toUnsignedInt(bytes[4*i + 1]) << 16) |
+                        (Byte.toUnsignedInt(bytes[4*i + 2]) <<  8) |
+                        (Byte.toUnsignedInt(bytes[4*i + 3]) <<  0);
         }
         return output;
     }

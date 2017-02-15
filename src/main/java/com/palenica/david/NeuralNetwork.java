@@ -21,6 +21,51 @@ public class NeuralNetwork {
     public double[][] secondWeights;
     public double[] secondBias;
 
+    public static class Gradient {
+        final public double[][][] firstWeights;
+        final public double[] firstBias;
+
+        final public double[][] secondWeights;
+        final public double[] secondBias;
+
+        private Gradient(final double[][][] firstWeights, final double[] firstBias,
+                         final double[][] secondWeights, final double[] secondBias) {
+            this.firstWeights = firstWeights;
+            this.firstBias = firstBias;
+            this.secondWeights = secondWeights;
+            this.secondBias = secondBias;
+        }
+
+        private Gradient(final int sizeHiddenLayer) {
+            this(new double[inputSize][inputSize][sizeHiddenLayer], new double[sizeHiddenLayer],
+                    new double[sizeHiddenLayer][outputSize], new double[outputSize]);
+        }
+
+        private void add(final Gradient other) {
+            for (int i = 0; i < firstWeights.length; i++) {
+                for (int j = 0; j < firstWeights[i].length; j++) {
+                    for (int k = 0; k < firstWeights[i][j].length; k++) {
+                        firstWeights[i][j][k] += other.firstWeights[i][j][k];
+                    }
+                }
+            }
+
+            for (int k = 0; k < firstBias.length; k++) {
+                firstBias[k] += other.firstBias[k];
+            }
+
+            for (int i = 0; i < secondWeights.length; i++) {
+                for (int j = 0; j < secondWeights[i].length; j++) {
+                    secondWeights[i][j] += other.secondWeights[i][j];
+                }
+            }
+
+            for (int j = 0; j < secondBias.length; j++) {
+                secondBias[j] += other.secondBias[j];
+            }
+        }
+    }
+
     public NeuralNetwork(final int sizeHiddenLayer) {
         this.sizeHiddenLayer = sizeHiddenLayer;
         this.firstWeights = new double[inputSize][inputSize][sizeHiddenLayer];
@@ -141,6 +186,10 @@ public class NeuralNetwork {
             output[i] = sigmoid(input[i]);
         }
         return output;
+    }
+
+    public Gradient getGradient(final double[][] image, final double L2regularization) {
+        return new Gradient(sizeHiddenLayer);
     }
 
 }

@@ -31,12 +31,18 @@ public class Utils {
         return output;
     }
 
-    public static double[][] preprocessImage(final byte[][] image) {
-        double[][] output = new double[image.length][];
+    public static double[] preprocessImage(final byte[][] image) {
+        int totalSize = 0;
         for (int i = 0; i < image.length; i++) {
-            output[i] = new double[image[i].length];
+            totalSize += image[i].length;
+        }
+
+        double[] output = new double[totalSize];
+        int count = 0;
+        for (int i = 0; i < image.length; i++) {
             for (int j = 0; j < image.length; j++) {
-                output[i][j] = image[i][j] / 255;
+                output[count] = (double)image[i][j] / 255.0;
+                count++;
             }
         }
         return output;

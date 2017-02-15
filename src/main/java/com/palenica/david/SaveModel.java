@@ -7,6 +7,7 @@ public class SaveModel {
 
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         NeuralNetwork neuralNetwork = new NeuralNetwork(15);
+        neuralNetwork.InitializeParameters(47L);
         neuralNetwork.saveToFile("model.txt");
 
         byte[][][] trainImages = Utils.readImages("data/train-images-idx3-ubyte.gz");

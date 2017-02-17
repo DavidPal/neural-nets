@@ -7,10 +7,10 @@ public class TrainModel {
 
     final public static int sizeHiddenLayer = 15;
 
-    final public static double stepSize = 0.001;
+    final public static double stepSize = 0.03;
     final public static double L2regularization = 0.0;
 
-    final public static int miniBatchSize = 100;
+    final public static int miniBatchSize = 10;
     final public static int numPasses = 10;
 
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {

@@ -219,7 +219,7 @@ public class NeuralNetwork {
         // System.out.println(String.format("loss = %f", loss));
 
         // This overwrites up both output and label. Beware!
-        MatrixUtils.multiply(-1.0, output);
+        MatrixUtils.multiply(-1.0, label);
         double[] error = MatrixUtils.add(label, output);
         double[] gradientSecondBias = error;
 

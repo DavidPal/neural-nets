@@ -215,10 +215,13 @@ public class NeuralNetwork {
         final double[] hidden = MatrixUtils.sigmoid(preHidden);
         double[] output = computeOutput(hidden);
 
+        // final double loss = Utils.loss(label, output);
+        // System.out.println(String.format("loss = %f", loss));
+
         // This overwrites up both output and label. Beware!
         MatrixUtils.multiply(-1.0, output);
-        MatrixUtils.addTo(label, output);
-        double[] gradientSecondBias = label;
+        double[] error = MatrixUtils.add(label, output);
+        double[] gradientSecondBias = error;
 
         double[][] gradientSecondWeights = new double[outputSize][sizeHiddenLayer];
         for (int i = 0; i < outputSize; i++) {
@@ -258,6 +261,13 @@ public class NeuralNetwork {
 
         for (int i = 0; i < inputs.length; i++) {
             Parameters gradient = getGradient(inputs[i], labels[i]);
+            try {
+                gradient.saveToFile("gradient.txt");
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
             MatrixUtils.multiply(-stepSize, gradient.firstWeights);
             MatrixUtils.multiply(-stepSize, gradient.firstBias);
             MatrixUtils.multiply(-stepSize, gradient.secondWeights);

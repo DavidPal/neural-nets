@@ -7,11 +7,11 @@ public class TrainModel {
 
     final public static int sizeHiddenLayer = 15;
 
-    final public static double stepSize = 1.0;
+    final public static double stepSize = 0.001;
     final public static double L2regularization = 0.0;
 
-    final public static int miniBatchSize = 10;
-    final public static int numPasses = 100;
+    final public static int miniBatchSize = 100;
+    final public static int numPasses = 10;
 
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         byte[][][] trainImages = Utils.readImages("data/train-images-idx3-ubyte.gz");
@@ -22,14 +22,14 @@ public class TrainModel {
         final int N = trainImages.length;
 
         NeuralNetwork neuralNetwork = new NeuralNetwork(sizeHiddenLayer);
-        neuralNetwork.initializeParameters(47L);
+        // neuralNetwork.initializeParameters(47L);
 
 
         for (int k = 0; k < numPasses; k++) {
             for (int i = 0; i < N / miniBatchSize; i++) {
-                if (i % 500 == 0) {
+                // if (i % 500 == 0) {
                     System.out.println(String.format("Pass %d, minibatch %d ...", k, i));
-                }
+                // }
                 double[][] batchImages = new double[miniBatchSize][];
                 double[][] batchLabels = new double[miniBatchSize][];
 
@@ -39,10 +39,18 @@ public class TrainModel {
                 }
 
                 neuralNetwork.updateParameters(batchImages, batchLabels, stepSize, L2regularization);
+
+                double loss = 0.0;
+                for (int j = 0; j < miniBatchSize; j++) {
+                    final double[] prediction = neuralNetwork.predict(batchImages[j]);
+                    loss += Utils.loss(batchLabels[j], prediction);
+                }
+                System.out.println(String.format("loss = %f", loss));
+
+                final int errors = TestModel.testModel(neuralNetwork, testImages, testLabels);
+                System.out.println(String.format("Error = %d,  %.2f%%", errors, 100.0 * errors / testImages.length));
             }
 
-            final int errors = TestModel.testModel(neuralNetwork, testImages, testLabels);
-            System.out.println(String.format("Error = %d,  %.2f%%", errors, 100.0 * errors / testImages.length));
         }
 
         neuralNetwork.saveToFile("model.txt");

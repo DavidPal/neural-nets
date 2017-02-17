@@ -68,4 +68,16 @@ public class Utils {
         return best;
     }
 
+    public static double loss(final double label, final double prediction) {
+        return -label * Math.log(prediction) - (1.0 - label) * Math.log(prediction);
+    }
+
+    public static double loss(final double[] label, final double[] prediction) {
+        double sum = 0.0;
+        for (int i = 0; i < label.length; i++) {
+            sum += loss(label[i], prediction[i]);
+        }
+        return sum;
+    }
+
 }

@@ -21,7 +21,8 @@
 
 \maketitle
 
-We start by defining several functions.
+\section{Logistic Sigmoid}
+
 Logistic sigmoid function is $\sigma:\R \to (0,1)$,
 $$
 \sigma(z) = \frac{1}{1 + e^{-z}} \qquad z \in \R \; .
@@ -30,18 +31,6 @@ Its derivative is
 $$
 \sigma'(z) = \frac{e^{-z}}{(1 + e^{-z})^2} = \sigma(z) (1 - \sigma(z)) \; .
 $$
-
-Log loss (also called cross entropy) is $L:[0,1] \times (0,1) \to \R$,
-$$
-L(y,p) = - y \ln(p) - (1-y) \ln(1-p) \; .
-$$
-The first argument is the correct label, the second argument
-is the prediction. Its partial derivative with respect to the prediction is,
-$$
-\frac{\partial L(y,p)}{\partial p} = - \frac{y}{p} + \frac{1-y}{1-p} \; .
-$$
-
-We generalize both the sigmoid and the log loss to vector arguments.
 Vector logistic sigmoid is $\bsigma:\R^d \to (0,1)^d$ is
 $$
 \bsigma(\z) = \bsigma(z_1, z_2, \dots, z_d) = (\sigma(z_1), \sigma(z_2), \dots, \sigma(z_d)) \; .
@@ -52,14 +41,50 @@ Its derivative (Jacobian) is
 & = \diag(\sigma'(z_1), \sigma'(z_2), \dots, \sigma'(z_d)) \\
 & = \diag(\sigma(z_1) (1 - \sigma(z_2)), \sigma(z_2) (1 - \sigma(z_2)), \dots, \sigma(z_d) (1 - \sigma(z_d))) \; .
 \end{align*}
+
+\section{Logarithmic Loss}
+
+Logarithmic loss (also called cross entropy) is $L:[0,1] \times (0,1) \to \R$,
+$$
+L(y,p) = - y \ln(p) - (1-y) \ln(1-p) \; .
+$$
+The first argument is the correct label, the second argument
+is the prediction. Its partial derivative with respect to the prediction is,
+$$
+\frac{\partial L(y,p)}{\partial p} = - \frac{y}{p} + \frac{1-y}{1-p} \; .
+$$
 Vector log loss is $\L:[0,1]^d \times (0,1)^d \to \R$
 $$
 \L(\y,\p) = \L(y_1, y_2, \dots, y_d, p_1, p_2, \dots, p_d) = \sum_{i=1}^d L(y_i, p_i) \; .
 $$
 Its partial derivate (gradient) with respect to the prediction is
 $$
-\frac{d \L(\y, \p)}{dp}
+\frac{\partial \L(\y, \p)}{\partial p}
 = \left(\frac{\partial L(y_1,p_1)}{\partial p_1}, \frac{\partial L(y_2,p_2)}{\partial p_2}, \dots, \frac{\partial L(y_d,p_d)}{\partial p_d} \right)
+$$
+
+\section{Logistic Loss}
+
+To simplify things, we define composition of $\L$ and $\sigma$.
+Formally, $g:\R^d \times \R^d \to \R$,
+$$
+g(\z) = \L(\y, \bsigma(\z)) = \sum_{i=1}^d L(y_i, \sigma(z_i)) \; .
+$$
+The function $g$ is the (vector) logistic loss.
+Its partial derivative with respect to $z_i$ is
+\begin{align*}
+\frac{\partial g(\y, \z)}{\partial z_i}
+& = \frac{\partial L(y_i, \sigma(z_i))}{\partial z_i} \\
+& = \frac{\partial L(y_i, p)}{\partial z_i} \bigg|_{p=\sigma(z_i)} \ \frac{\sigma(z_i)}{\partial z_i} \\
+& = \frac{\partial L(y_i, p)}{\partial z_i} \bigg|_{p=\sigma(z_i)} \ \sigma(z_i) (1 - \sigma(z_i)) \\
+& = \left(  - \frac{y_i}{\sigma(z_i)} + \frac{1-y_i}{1-\sigma(z_i)} \right)  \sigma(z_i) (1 - \sigma(z_i)) \\
+& =  - (1 - \sigma(z_i)) y_i  + \sigma(z_i) (1-y_i)   \\
+& =  - y_i + \sigma(z_i) y_i  + \sigma(z_i) - \sigma(z_i)y_i   \\
+& =  \sigma(z_i) - y_i \; .
+\end{align*}
+Thus gradient with respect to $\z$ is
+$$
+\frac{\partial g(\y, \z)}{\partial \z} = \bsigma(\z) - \y  \; .
 $$
 
 \section{Derivative of Matrix-Vector Multiplication}
@@ -80,34 +105,54 @@ f(A,b,C,d,x) = \bsigma(C \cdot \bsigma(A \cdot x + b) + d) \; .
 $$
 The goal of the network is minimize log loss with respect to correct label.
 $$
-\cost(A,b,C,d) = \L(\y, f(A,b,C,d,x)) = \L(\y, \bsigma(C \cdot \bsigma(A \cdot x + b) + d)) \; .
+\cost_{x,\y}(A,b,C,d) = \L(\y, f(A,b,C,d,x)) = \L(\y, \bsigma(C \cdot \bsigma(A \cdot x + b) + d)) = g(\y, C \cdot \bsigma(A \cdot x + b) + d) \; .
 $$
+The algorithm for minimizing the cost is gradient descent. Hence, we need to
+compute the partial derivatives of $\cost$ with respect to the parameters:
 
-The algorithm for minimizing the cost is gradient descent. Hence, we
-compute the partial derivatives of $\cost$.
 \begin{align*}
-& \frac{\partial \cost(A,b,C,d)}{\partial C_{i,j}} \\
-& = \frac{\partial \L(\y, f(A,b,C,d,x))}{\partial C_{i,j}}  \\
-& = \frac{\partial \L(\y, \bsigma(C \cdot \bsigma(A \cdot x + b) + d))}{\partial C_{i,j}} \\
-& = \frac{\partial \L(\y, \p)}{\partial \p}\bigg|_{\p=\bsigma(C \cdot \bsigma(A \cdot x + b) + d))} \ \frac{\partial \bsigma(C \cdot \bsigma(A \cdot x + b) + d))}{\partial C_{i,j}} \\
-& = \frac{\partial \L(\y, \p)}{\partial \p}\bigg|_{\p=\bsigma(C \cdot \bsigma(A \cdot x + b) + d))} \ \frac{\partial \bsigma(\z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)}
-\ \frac{\partial [C \cdot \bsigma(A \cdot x + b) + d]}{\partial C_{i,j}} \\
-& = \frac{\partial \L(\y, \p)}{\partial \p}\bigg|_{\p=\bsigma(C \cdot \bsigma(A \cdot x + b) + d))} \ \frac{\partial \bsigma(\z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)}
-\ [\bsigma(A \cdot x + b)]_j \cdot \e_i
+\frac{\partial \cost_{x,\y}(A,b,C,d)}{\partial A_{i,j}}
+& = \frac{\partial g(\y, C \cdot \bsigma(A \cdot x + b) + d)}{\partial A_{i,j}} \\
+& = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ \frac{\partial [C \cdot \bsigma(A \cdot x + b) + d]}{\partial A_{i,j}} \\
+& = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ C \cdot \frac{\partial \bsigma(A \cdot x + b)}{\partial A_{i,j}} \\
+& = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ C \cdot \frac{\partial \bsigma(\z)}{\partial \z} \bigg|_{\z=A \cdot x + b} \frac{\partial [A \cdot x + b]}{\partial A_{i,j}} \\
+& = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ C \cdot \frac{\partial \bsigma(\z)}{\partial \z} \bigg|_{\z=A \cdot x + b} \cdot x_j \e_i \\
+& = \left(\y - \bsigma(C \cdot \bsigma(A \cdot x + b) + d)) \right) \cdot C \cdot \frac{\partial \bsigma(\z)}{\partial \z} \bigg|_{\z=A \cdot x + b} \cdot x_j \e_i \; .
 \end{align*}
 
 \begin{align*}
-& \frac{\partial \cost(A,b,C,d)}{\partial d} \\
-& = \frac{\partial \L(\y, f(A,b,C,d,x))}{\partial d}  \\
-& = \frac{\partial \L(\y, \bsigma(C \cdot \bsigma(A \cdot x + b) + d))}{\partial d} \\
-& = \frac{\partial \L(\y, \p)}{\partial \p}\bigg|_{\p=\bsigma(C \cdot \bsigma(A \cdot x + b) + d))} \ \frac{\partial \bsigma(C \cdot \bsigma(A \cdot x + b) + d))}{\partial d} \\
-& = \frac{\partial \L(\y, \p)}{\partial \p}\bigg|_{\p=\bsigma(C \cdot \bsigma(A \cdot x + b) + d))} \ \frac{\partial \bsigma(\z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)}
-\ \frac{\partial [C \cdot \bsigma(A \cdot x + b) + d]}{\partial d} \\
-& = \frac{\partial \L(\y, \p)}{\partial \p}\bigg|_{\p=\bsigma(C \cdot \bsigma(A \cdot x + b) + d))} \ \frac{\partial \bsigma(\z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)}
-\ I_{k \times k}
+\frac{\partial \cost_{x,\y}(A,b,C,d)}{\partial b}
+& = \frac{\partial g(C \cdot \bsigma(A \cdot x + b) + d)}{\partial b} \\
+& = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ \frac{\partial [C \cdot \bsigma(A \cdot x + b) + d]}{\partial b} \\
+& = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ C \cdot \frac{\partial \bsigma(A \cdot x + b)}{\partial b} \\
+& = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ C \cdot \frac{\partial \bsigma(\z)}{\partial \z} \bigg|_{\z=A \cdot x + b} \frac{\partial [A \cdot x + b]}{\partial b} \\
+& = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ C \cdot \frac{\partial \bsigma(\z)}{\partial \z} \bigg|_{\z=A \cdot x + b} \cdot I_{m \times m} \\
+& = \left(\y - \bsigma(C \cdot \bsigma(A \cdot x + b) + d)) \right) \cdot \ C \cdot \frac{\partial \bsigma(\z)}{\partial \z} \bigg|_{\z=A \cdot x + b} \; .
 \end{align*}
 
+\begin{align*}
+\frac{\partial \cost_{x,\y}(A,b,C,d)}{\partial C_{i,j}}
+& = \frac{\partial g(\y, C \cdot \bsigma(A \cdot x + b) + d)}{\partial C_{i,j}} \\
+& = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ \frac{\partial [C \cdot \bsigma(A \cdot x + b) + d]}{\partial C_{i,j}} \\
+& = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ [\bsigma(A \cdot x + b)]_j \cdot \e_i \\
+& = \left(\y - \bsigma(C \cdot \bsigma(A \cdot x + b) + d)) \right) \cdot [\bsigma(A \cdot x + b)]_j \cdot \e_i \; .
+\end{align*}
 
+\begin{align*}
+\frac{\partial \cost_{x,\y}(A,b,C,d)}{\partial d}
+& = \frac{\partial g(C \cdot \bsigma(A \cdot x + b) + d)}{\partial d} \\
+& = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ \frac{\partial [C \cdot \bsigma(A \cdot x + b) + d]}{\partial d} \\
+& = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ I_{k \times k} \\
+& = \y - \bsigma(C \cdot \bsigma(A \cdot x + b) + d)) \; .
+\end{align*}
 
+The backward propagation algorithm is simply the (online stochastic) gradient descent algorithm.
+In round $t$ it takes sample $(x^{(t)}, \y^{(t)})$ and updates the parameters:
+\begin{align*}
+A^{(t+1)} & = A^{(t)} - \frac{\partial \cost_{x^{(t)},\y^{(t)}}(A,b,C,d)}{\partial A} \; , \\
+b^{(t+1)} & = b^{(t)} - \frac{\partial \cost_{x^{(t)},\y^{(t)}}(A,b,C,d)}{\partial b} \; , \\
+C^{(t+1)} & = C^{(t)} - \frac{\partial \cost_{x^{(t)},\y^{(t)}}(A,b,C,d)}{\partial C} \; , \\
+d^{(t+1)} & = d^{(t)} - \frac{\partial \cost_{x^{(t)},\y^{(t)}}(A,b,C,d)}{\partial d} \; .
+\end{align*}
 
 \end{document}

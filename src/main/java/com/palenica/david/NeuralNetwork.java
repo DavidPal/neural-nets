@@ -152,9 +152,14 @@ public class NeuralNetwork {
         this.parameters = new Parameters(sizeHiddenLayer);
     }
 
-    public void loadParametersFromFile(final String fileName) throws IOException {
-        this.parameters = Parameters.loadParametersFromFile(fileName);
-        this.sizeHiddenLayer = parameters.firstBias.length;
+    private NeuralNetwork(final int sizeHiddenLayer, Parameters parameters) {
+        this.sizeHiddenLayer = sizeHiddenLayer;
+        this.parameters = parameters;
+    }
+
+    public static NeuralNetwork loadFromFile(final String fileName) throws IOException {
+        Parameters parameters = Parameters.loadParametersFromFile(fileName);
+        return new NeuralNetwork(parameters.firstBias.length, parameters);
     }
 
     public void saveToFile(final String fileName) throws FileNotFoundException, UnsupportedEncodingException {
@@ -244,15 +249,19 @@ public class NeuralNetwork {
         final double[][] secondWeights = new double[outputSize][sizeHiddenLayer];
         final double[] secondBias = new double[outputSize];
 
-        MatrixUtils.addTo(firstWeights, L2regularization);
-        MatrixUtils.addTo(firstBias, L2regularization);
-        MatrixUtils.addTo(secondWeights, L2regularization);
-        MatrixUtils.addTo(secondBias, L2regularization);
+        MatrixUtils.addTo(firstWeights, -L2regularization);
+        MatrixUtils.addTo(firstBias, -L2regularization);
+        MatrixUtils.addTo(secondWeights, -L2regularization);
+        MatrixUtils.addTo(secondBias, -L2regularization);
 
         parameters.add(new Parameters(firstWeights, firstBias, secondWeights, secondBias));
 
         for (int i = 0; i < inputs.length; i++) {
             Parameters gradient = getGradient(inputs[i], labels[i]);
+            MatrixUtils.multiply(-stepSize, gradient.firstWeights);
+            MatrixUtils.multiply(-stepSize, gradient.firstBias);
+            MatrixUtils.multiply(-stepSize, gradient.secondWeights);
+            MatrixUtils.multiply(-stepSize, gradient.secondBias);
             parameters.add(gradient);
         }
 

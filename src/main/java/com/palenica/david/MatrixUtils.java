@@ -133,6 +133,13 @@ public class MatrixUtils {
         }
     }
 
+    // Matrix multiplication
+    public static void multiply(final double a, final double[][] B) {
+        for (int i = 0; i < B.length; i++) {
+            multiply(a, B[i]);
+        }
+    }
+
     // Componentwise multiplication of vector
     public static double[] componentMultiply(final double a[], final double[] b) {
         if (a.length != b.length) {

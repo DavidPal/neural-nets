@@ -8,6 +8,7 @@ import java.util.zip.GZIPInputStream;
 public class Utils {
 
     public static byte[][][] readImages(String filename) {
+        System.out.println(String.format("Loading images from '%s'...", filename));
         byte[][][] output = null;
         try {
             InputStream fileStream = new FileInputStream(filename);
@@ -16,10 +17,12 @@ public class Utils {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+        System.out.println("Done");
         return output;
     }
 
     public static byte[] readLabels(String filename) {
+        System.out.println(String.format("Loading labels from '%s'...", filename));
         byte[] output = null;
         try {
             InputStream fileStream = new FileInputStream(filename);
@@ -28,6 +31,7 @@ public class Utils {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+        System.out.println("Done");
         return output;
     }
 
@@ -46,6 +50,22 @@ public class Utils {
             }
         }
         return output;
+    }
+
+    public static double[] preprocessLabel(final int label) {
+        double[] output = new double[10];
+        output[label] = 1.0;
+        return output;
+    }
+
+    public static int decodeLabel(final double[] label) {
+        int best = 0;
+        for (int i = 0; i < 10; i++) {
+            if (label[i] > label[best]) {
+                best = i;
+            }
+        }
+        return best;
     }
 
 }

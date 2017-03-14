@@ -250,9 +250,9 @@ public class NeuralNetwork {
         final double[] secondBias = new double[outputSize];
 
         MatrixUtils.addTo(firstWeights, -L2regularization * stepSize);
-        MatrixUtils.addTo(firstBias, -L2regularization * stepSize);
+        // MatrixUtils.addTo(firstBias, -L2regularization * stepSize);
         MatrixUtils.addTo(secondWeights, -L2regularization * stepSize);
-        MatrixUtils.addTo(secondBias, -L2regularization * stepSize);
+        // MatrixUtils.addTo(secondBias, -L2regularization * stepSize);
 
         updatedParameters.add(new Parameters(firstWeights, firstBias, secondWeights, secondBias));
 

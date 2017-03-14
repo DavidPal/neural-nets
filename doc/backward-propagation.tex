@@ -39,7 +39,7 @@ Its derivative (Jacobian) is
 \begin{align*}
 \frac{d \bsigma(\z)}{d\z}
 & = \diag(\sigma'(z_1), \sigma'(z_2), \dots, \sigma'(z_d)) \\
-& = \diag(\sigma(z_1) (1 - \sigma(z_2)), \sigma(z_2) (1 - \sigma(z_2)), \dots, \sigma(z_d) (1 - \sigma(z_d))) \; .
+& = \diag(\sigma(z_1) (1 - \sigma(z_1)), \sigma(z_2) (1 - \sigma(z_2)), \dots, \sigma(z_d) (1 - \sigma(z_d))) \; .
 \end{align*}
 
 \section{Logarithmic Loss}
@@ -49,9 +49,9 @@ $$
 L(y,p) = - y \ln(p) - (1-y) \ln(1-p) \; .
 $$
 The first argument is the correct label, the second argument
-is the prediction. Its partial derivative with respect to the prediction is,
+is the prediction. Its partial derivative with respect to the prediction is
 $$
-\frac{\partial L(y,p)}{\partial p} = - \frac{y}{p} + \frac{1-y}{1-p} \; .
+\frac{\partial L(y,p)}{\partial p} = - \frac{y}{p} + \frac{1-y}{1-p} = \frac{-y(1-p) + p(1-y)}{p(1-p)} = \frac{p-y}{p(1-p)} \; .
 $$
 Vector log loss is $\L:[0,1]^d \times (0,1)^d \to \R$
 $$
@@ -75,11 +75,8 @@ Its partial derivative with respect to $z_i$ is
 \begin{align*}
 \frac{\partial g(\y, \z)}{\partial z_i}
 & = \frac{\partial L(y_i, \sigma(z_i))}{\partial z_i} \\
-& = \frac{\partial L(y_i, p)}{\partial z_i} \bigg|_{p=\sigma(z_i)} \ \frac{\sigma(z_i)}{\partial z_i} \\
-& = \frac{\partial L(y_i, p)}{\partial z_i} \bigg|_{p=\sigma(z_i)} \ \sigma(z_i) (1 - \sigma(z_i)) \\
-& = \left(  - \frac{y_i}{\sigma(z_i)} + \frac{1-y_i}{1-\sigma(z_i)} \right)  \sigma(z_i) (1 - \sigma(z_i)) \\
-& =  - (1 - \sigma(z_i)) y_i  + \sigma(z_i) (1-y_i)   \\
-& =  - y_i + \sigma(z_i) y_i  + \sigma(z_i) - \sigma(z_i)y_i   \\
+& = \frac{\partial L(y_i, p)}{\partial z_i} \bigg|_{p=\sigma(z_i)} \cdot \frac{\sigma(z_i)}{\partial z_i} \\
+& = \frac{\sigma(z_i) - y_i}{\sigma(z_i)(1-\sigma(z_i))} \cdot  \sigma(z_i) (1 - \sigma(z_i)) \\
 & =  \sigma(z_i) - y_i \; .
 \end{align*}
 Thus gradient with respect to $\z$ is
@@ -117,7 +114,7 @@ compute the partial derivatives of $\cost$ with respect to the parameters:
 & = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ C \cdot \frac{\partial \bsigma(A \cdot x + b)}{\partial A_{i,j}} \\
 & = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ C \cdot \frac{\partial \bsigma(\z)}{\partial \z} \bigg|_{\z=A \cdot x + b} \frac{\partial [A \cdot x + b]}{\partial A_{i,j}} \\
 & = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ C \cdot \frac{\partial \bsigma(\z)}{\partial \z} \bigg|_{\z=A \cdot x + b} \cdot x_j \e_i \\
-& = \left(\y - \bsigma(C \cdot \bsigma(A \cdot x + b) + d)) \right) \cdot C \cdot \frac{\partial \bsigma(\z)}{\partial \z} \bigg|_{\z=A \cdot x + b} \cdot x_j \e_i \; .
+& = \left(\bsigma(C \cdot \bsigma(A \cdot x + b) + d)) - \y \right) \cdot C \cdot \frac{\partial \bsigma(\z)}{\partial \z} \bigg|_{\z=A \cdot x + b} \cdot x_j \e_i \; .
 \end{align*}
 
 \begin{align*}
@@ -127,7 +124,7 @@ compute the partial derivatives of $\cost$ with respect to the parameters:
 & = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ C \cdot \frac{\partial \bsigma(A \cdot x + b)}{\partial b} \\
 & = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ C \cdot \frac{\partial \bsigma(\z)}{\partial \z} \bigg|_{\z=A \cdot x + b} \frac{\partial [A \cdot x + b]}{\partial b} \\
 & = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ C \cdot \frac{\partial \bsigma(\z)}{\partial \z} \bigg|_{\z=A \cdot x + b} \cdot I_{m \times m} \\
-& = \left(\y - \bsigma(C \cdot \bsigma(A \cdot x + b) + d)) \right) \cdot \ C \cdot \frac{\partial \bsigma(\z)}{\partial \z} \bigg|_{\z=A \cdot x + b} \; .
+& = \left(\bsigma(C \cdot \bsigma(A \cdot x + b) + d))  - \y \right) \cdot \ C \cdot \frac{\partial \bsigma(\z)}{\partial \z} \bigg|_{\z=A \cdot x + b} \; .
 \end{align*}
 
 \begin{align*}
@@ -135,7 +132,7 @@ compute the partial derivatives of $\cost$ with respect to the parameters:
 & = \frac{\partial g(\y, C \cdot \bsigma(A \cdot x + b) + d)}{\partial C_{i,j}} \\
 & = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ \frac{\partial [C \cdot \bsigma(A \cdot x + b) + d]}{\partial C_{i,j}} \\
 & = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ [\bsigma(A \cdot x + b)]_j \cdot \e_i \\
-& = \left(\y - \bsigma(C \cdot \bsigma(A \cdot x + b) + d)) \right) \cdot [\bsigma(A \cdot x + b)]_j \cdot \e_i \; .
+& = \left(\bsigma(C \cdot \bsigma(A \cdot x + b) + d))  - \y \right) \cdot [\bsigma(A \cdot x + b)]_j \cdot \e_i \; .
 \end{align*}
 
 \begin{align*}
@@ -143,7 +140,7 @@ compute the partial derivatives of $\cost$ with respect to the parameters:
 & = \frac{\partial g(C \cdot \bsigma(A \cdot x + b) + d)}{\partial d} \\
 & = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ \frac{\partial [C \cdot \bsigma(A \cdot x + b) + d]}{\partial d} \\
 & = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ I_{k \times k} \\
-& = \y - \bsigma(C \cdot \bsigma(A \cdot x + b) + d)) \; .
+& = \bsigma(C \cdot \bsigma(A \cdot x + b) + d)) - \y \; .
 \end{align*}
 
 The backward propagation algorithm is simply the (online stochastic) gradient descent algorithm.

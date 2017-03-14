@@ -132,7 +132,8 @@ compute the partial derivatives of $\cost$ with respect to the parameters:
 & = \frac{\partial g(\y, C \cdot \bsigma(A \cdot x + b) + d)}{\partial C_{i,j}} \\
 & = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ \frac{\partial [C \cdot \bsigma(A \cdot x + b) + d]}{\partial C_{i,j}} \\
 & = \frac{\partial g(\y, \z)}{\partial \z}\bigg|_{\z=C \cdot \bsigma(A \cdot x + b) + d)} \ [\bsigma(A \cdot x + b)]_j \cdot \e_i \\
-& = \left(\bsigma(C \cdot \bsigma(A \cdot x + b) + d))  - \y \right) \cdot [\bsigma(A \cdot x + b)]_j \cdot \e_i \; .
+& = \left(\bsigma(C \cdot \bsigma(A \cdot x + b) + d))  - \y \right) \cdot [\bsigma(A \cdot x + b)]_j \cdot \e_i \\
+& = \left[\bsigma(C \cdot \bsigma(A \cdot x + b) + d))  - \y \right]_i \cdot [\bsigma(A \cdot x + b)]_j \; .
 \end{align*}
 
 \begin{align*}

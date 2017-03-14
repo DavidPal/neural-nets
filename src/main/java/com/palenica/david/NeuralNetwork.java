@@ -185,6 +185,20 @@ public class NeuralNetwork {
         return computeOutput(hidden);
     }
 
+    public int predictHardLabel(final double[] input) {
+        double[] prediction = predict(input);
+        return Utils.decodeLabel(prediction);
+    }
+
+    public double[][] predictBatch(final double[][] inputs) {
+        double[][] predictions = new double[inputs.length][];
+        for (int i = 0; i < inputs.length; i++) {
+            double[] hidden = computeHidden(inputs[i]);
+            predictions[i] = computeOutput(hidden);
+        }
+        return predictions;
+    }
+
     public void initializeParameters(final long seed) {
         Random random = new Random(seed);
         for (int i = 0; i < sizeHiddenLayer; i++) {
@@ -210,29 +224,30 @@ public class NeuralNetwork {
 
     // See documentation in "doc/" directory.
     public Parameters getGradient(final double[] input, final double[] label) {
-        final double[] preHidden = MatrixUtils.multiply(parameters.firstWeights, input);
-        MatrixUtils.addTo(preHidden, parameters.firstBias);
-        final double[] hidden = MatrixUtils.sigmoid(preHidden);
+        final double[] activation = MatrixUtils.multiply(parameters.firstWeights, input);
+        MatrixUtils.addTo(activation, parameters.firstBias);
+        final double[] hidden = MatrixUtils.sigmoid(activation);
         double[] output = computeOutput(hidden);
 
         // final double loss = Utils.loss(label, output);
         // System.out.println(String.format("loss = %f", loss));
 
         // This overwrites up both output and label. Beware!
-        MatrixUtils.multiply(-1.0, label);
-        double[] error = MatrixUtils.add(label, output);
-        double[] gradientSecondBias = error;
+        final double[] negativeLabel = MatrixUtils.copy(label);
+        MatrixUtils.multiply(-1.0, negativeLabel);
+        final double[] error = MatrixUtils.add(output, negativeLabel);
+        final double[] gradientSecondBias = error;
 
         double[][] gradientSecondWeights = new double[outputSize][sizeHiddenLayer];
         for (int i = 0; i < outputSize; i++) {
             for (int j = 0; j < sizeHiddenLayer; j++) {
-                gradientSecondWeights[i][j] = label[i] * hidden[j];
+                gradientSecondWeights[i][j] = error[i] * hidden[j];
             }
         }
 
-        MatrixUtils.applySigmaPrime(preHidden);
-        double[] hiddenError = MatrixUtils.multiply(label, parameters.secondWeights);
-        double[] gradientFirstBias = MatrixUtils.componentMultiply(hiddenError, preHidden);
+        MatrixUtils.applySigmaPrime(activation);
+        double[] hiddenError = MatrixUtils.multiply(error, parameters.secondWeights);
+        double[] gradientFirstBias = MatrixUtils.componentMultiply(hiddenError, activation);
 
         double[][] gradientFirstWeights = new double[sizeHiddenLayer][inputSize];
         for (int i = 0; i < sizeHiddenLayer; i++) {
@@ -241,11 +256,14 @@ public class NeuralNetwork {
             }
         }
 
+        // double[] gradientFirstBias = new double[sizeHiddenLayer];
+        // double[][] gradientFirstWeights = new double[sizeHiddenLayer][inputSize];
+
         return new Parameters(gradientFirstWeights, gradientFirstBias, gradientSecondWeights, gradientSecondBias);
     }
 
     public void updateParameters(final double[][] inputs, final double[][] labels, final double stepSize, final double L2regularization) {
-        Parameters parameters = Parameters.createDeepCopy(this.parameters);
+        Parameters updatedParameters = Parameters.createDeepCopy(this.parameters);
 
         final double[][] firstWeights = new double[sizeHiddenLayer][inputSize];
         final double[] firstBias = new double[sizeHiddenLayer];
@@ -257,7 +275,7 @@ public class NeuralNetwork {
         MatrixUtils.addTo(secondWeights, -L2regularization);
         MatrixUtils.addTo(secondBias, -L2regularization);
 
-        parameters.add(new Parameters(firstWeights, firstBias, secondWeights, secondBias));
+        updatedParameters.add(new Parameters(firstWeights, firstBias, secondWeights, secondBias));
 
         for (int i = 0; i < inputs.length; i++) {
             Parameters gradient = getGradient(inputs[i], labels[i]);
@@ -268,14 +286,14 @@ public class NeuralNetwork {
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
-            MatrixUtils.multiply(-stepSize, gradient.firstWeights);
+            MatrixUtils.multiplyBy(-stepSize, gradient.firstWeights);
             MatrixUtils.multiply(-stepSize, gradient.firstBias);
-            MatrixUtils.multiply(-stepSize, gradient.secondWeights);
+            MatrixUtils.multiplyBy(-stepSize, gradient.secondWeights);
             MatrixUtils.multiply(-stepSize, gradient.secondBias);
-            parameters.add(gradient);
+            updatedParameters.add(gradient);
         }
 
-        this.parameters = parameters;
+        this.parameters = updatedParameters;
     }
 
 }

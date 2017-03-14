@@ -134,7 +134,7 @@ public class MatrixUtils {
     }
 
     // Matrix multiplication
-    public static void multiply(final double a, final double[][] B) {
+    public static void multiplyBy(final double a, final double[][] B) {
         for (int i = 0; i < B.length; i++) {
             multiply(a, B[i]);
         }
@@ -148,6 +148,14 @@ public class MatrixUtils {
         double[] output = new double[a.length];
         for (int i = 0; i < a.length; i++) {
             output[i] = a[i] * b[i];
+        }
+        return output;
+    }
+
+    public static double[] copy(final double[] a) {
+        double[] output = new double[a.length];
+        for (int i = 0; i < a.length; i++) {
+            output[i] = a[i];
         }
         return output;
     }

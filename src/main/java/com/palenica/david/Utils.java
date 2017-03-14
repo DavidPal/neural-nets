@@ -98,14 +98,6 @@ public class Utils {
         return sum;
     }
 
-    public static double loss(final double[][] labels, final double[][] predictions) {
-        double sum = 0.0;
-        for (int i = 0; i < labels.length; i++) {
-            sum += loss(labels[i], predictions[i]);
-        }
-        return sum;
-    }
-
     public static void shuffle(byte[] data, final long seed) {
         Random random = new Random(seed);
         for (int i = data.length - 1; i > 0; i--) {
@@ -130,5 +122,23 @@ public class Utils {
         }
     }
 
+    public static void printStats(final String message, final NeuralNetwork neuralNetwork, byte[][][] testImages, byte[] testLabels) {
+        final int N = testImages.length;
+        int errors = 0;
+        double loss = 0.0;
+        for (int j = 0; j < N; j++) {
+            double[] input = Utils.preprocessImage(testImages[j]);
+            final int correctLabel = testLabels[j];
+            double[] label = Utils.preprocessLabel(correctLabel);
+            double[] prediction = neuralNetwork.predict(input);
+            final int predictedLabel = Utils.decodeLabel(prediction);
+            if (predictedLabel != correctLabel) {
+                errors++;
+            }
+            loss += Utils.loss(label, neuralNetwork.predict(input));
+        }
+
+        System.out.println(String.format("%s   N = %6d    errors = %6d   error_rate = %.2f%%   avg_loss = %.10f", message, N, errors, 100.0 * errors / (double) N, loss / N));
+    }
 
 }
